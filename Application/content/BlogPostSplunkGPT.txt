@@ -1,0 +1,45 @@
+Title: 
+BsidesAugustaCompromise: Yet Another Supply Chain 
+Since discovering the global intrusion campaign to distribute malware nicknamed as BlindSide and UNC-137, we are committed to supporting our customers and the cyber security community with free resources, tools and services to help you detect and successfully block this threat.
+Introduction:
+In recent weeks, an alarming breach has come to the fore: A supply chain compromise affecting consumers who have purchased and installed the BsidesAugusta software by EvilCorp. An Advanced Persistent Threat group known as UNC-137 was able to insert their malicious code into EvilCorp’s continuous integration and development (CICD) pipeline. The malicious code is causing the service binary called "BsidesAugusta" to check and see if the local user “bsides” exists. If the user does not exist, it is added to the compromised host and the results are saved to a file called “ServiceLog_MM_DD_YYYY.txt” where MM stands for Month, DD stands for day, and YYYY stands for the year. The method by which EvilCorp’s CICD pipeline was compromised remains unclear, but the ramifications could be severe to all consumers who have the BsidesAugusta software installed. This blog post aims to unpack the attack, discuss its implications, and offer actionable detection and mitigation steps.
+Attack Overview:
+The BsidesAugusta software exists as a service within the compromised Windows 10 systems. Once the service is running, the software checks once every 10 seconds to see if the local user "bsides" exists. If the user does not exist, it is created and added to the localgroup “Administrators”. The results of this check are saved to a file called “ServiceLog_MM_DD_YYYY.txt” where MM stands for Month, DD stands for day, and YYYY stands for the year. 
+It is unclear if this attack is apart of ongoing attacks as a means to gain persistence or if it is the first stage of a deeper supply chain attack. No additional indicators of compromise suggest that the BsidesAugusta software has been altered to download and execute a remote access tool at this time. 
+MITRE ATT&CK Techniques Observed
+
+1. Service Execution [T1569.002]: The software is typically installed as a service with 'NT System' privileges on a host. Current access levels to the development pipeline indicate that the software could be leveraged to execute additional malicious content on each infected host. 
+2. Create Account – Local Account [T1136.001]: Once the service is installed, the program is being used to create a form of persistence. A local administrator account called “bsides” is being created and added to each infected host.
+3. Account Discovery – Local Account [T1087.001]: UNC-137 has modified the software to enumerate the local user accounts and determine if the bsides account exists.
+
+Detection Procedures
+1. Service Execution Logs: Identify if a new service was installed in the system
+<EventID>7045</EventID> <!-- A new service was installed -->
+```splunk
+index=main EventCode=7045 Service_Name=BsidesAugusta
+```
+2. Account Creation Monitoring: Monitor Microsoft Windows Security event logs for account creation and user added to local administrators group 
+<EventID>4720</EventID> <!-- A user account was created -->
+<EventID>4732</EventID> <!-- A member was added to a security-enabled local group-->
+```splunk
+index=main EventCode=4720 Account_Name=bsides
+```
+```splunk
+index=main EventCode=4732 [search index=main EventCode=4720  Account_Name=bsides | fields New_Account_Security_ID |rename New_Account_Security_ID as Member_Security_ID | format]
+```
+3. Account Discovery Monitoring: Monitor Microsoft Windows Security event logs for account enumeration for the user bsides. 
+<EventID>4798</EventID> <!-- A user’s local group membership was enumerated -->
+```splunk
+index=main bsides EventCode=4798 Account_Name=bsides
+```
+3. Network Monitoring: Examine network logs for abnormal traffic patterns that may be indicative of data exfiltration or lateral movement.
+4. Hunt for Indicators of Compromise (IoCs): Search for specific file hashes, IP addresses, or domains that may be connected to UNC-137.
+
+Real Examples and Case Studies
+1. NotPetya: A supply chain attack that compromised a Ukrainian accounting software to deliver destructive payloads.
+2. SolarWinds: Another supply chain attack that compromised the infrastructure of multiple U.S. government agencies and corporations.
+3. CCleaner Incident: In 2017, CCleaner, a popular system cleaning tool, was compromised to distribute malware via a supply chain attack.
+All these examples reiterate the importance of robust cybersecurity hygiene and detection mechanisms.
+Conclusion:
+The BsidesAugusta attack serves as a serious wake-up call for organizations to bolster their cybersecurity defenses. By understanding the modus operandi of this specific attack and implementing effective detection and mitigation strategies, cybersecurity professionals can take proactive steps to protect their organization's critical assets.
+So, remain vigilant, keep your systems updated, and never underestimate the power of proactive cybersecurity measures.

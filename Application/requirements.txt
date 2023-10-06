@@ -1,0 +1,12 @@
+langchain 
+openai 
+transformers 
+typing 
+python-dotenv 
+google-search-results 
+splunk-sdk 
+tiktoken 
+PyPDF2 
+faiss-cpu
+streamlit
+bs4
