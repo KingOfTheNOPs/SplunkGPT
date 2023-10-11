@@ -1,6 +1,9 @@
 # SplunkGPT
 SplunkGPT is an LLM task based agent that converts natural language queries into Search Processing Language queries, runs the query, and provides a summary based on the results recieved. The agent is designed with the goal of detecting malicious activity by either searching a local vector database or by using serpapi to research the indicators of compromise. 
 
+## Bsides Augusta Video
+https://youtu.be/0VNoK0hJP-k?si=7aXLHtCSumn4bmbo
+
 ## How it works
 The agent begins by prompting the user for a goal. The goal is then broken down into a list of tasks. The agent then researches what data could be used to detect the goal in mind either locally using a vector database or remotely using serpapi. The data is then used to refine the list of tasks and begin executing the agent actions to write, refactor, and apply a statistical threshold to detect the goal in mind. The agent wraps up its tasks by prompting the user if the query needs to be refined and then executes the query on the splunk server once the user is content with the query that has been generated. The results of the query are then summarized and the user is presented with remediation and mitigation steps.   
 
